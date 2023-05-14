@@ -1,1 +1,1 @@
-# ansible-svr
+# ansible을 이용한 서버 구축

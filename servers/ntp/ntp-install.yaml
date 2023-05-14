@@ -1,0 +1,32 @@
+---
+- name: set-hostname
+  hosts: ntp
+  remote_user: root
+  gather_facts: no
+
+  tasks:
+  - name: Set hostname
+    hostname:
+      name: ntp.sdjo.com
+  - name: install chronyd
+    yum:
+      name: chrony
+      state: latest
+      update_cache: yes
+  - name: start chronyd
+    service:
+      name: chronyd
+      state: started
+  - name: copy chrony.conf
+    copy:
+      src: "/root/chrony.conf"
+      dest: "/etc/chrony.conf"
+  - name: Add allow hosts to chrony.conf
+    lineinfile:
+      path: "/etc/chrony.conf"
+      line: "allow 192.168.45.0/24"
+      remote_src: yes
+  - name: restart chronyd
+    service:
+      name: chronyd
+      state: restarted

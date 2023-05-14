@@ -1,0 +1,2 @@
+/nfs/cinder 192.168.45.0/24(rw,sync)
+/nfs/glance 192.168.45.0/24(rw,sync)

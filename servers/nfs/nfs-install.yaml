@@ -1,0 +1,65 @@
+---
+- name: set-hostname
+  hosts: nfs
+  remote_user: root
+  gather_facts: no
+
+  tasks:
+  - name: Set hostname
+    hostname:
+      name: nfs.sdjo.com
+  - name: install nfs
+    yum:
+      name: nfs-utils
+      state: latest
+      update_cache: yes
+  - name: start nfs-server
+    service:
+      name: nfs-server
+      state: started
+  - name: start rpcbind
+    service:
+      name: rpcbind
+      state: started
+  - name: Firewal add service
+    firewalld:
+      permanent: yes
+      immediate: yes
+      service: "{{ item }}"
+      state: enabled
+    with_items:
+      - nfs
+  - name: Firewal add ports
+    firewalld:
+      permanent: yes
+      immediate: yes
+      port: "{{item.port}}/{{item.proto}}"
+      state: "{{item.state}}"
+      zone: "{{item.zone}}"
+    with_items:
+      - {port: "111", proto: "tcp", state: "enabled", zone: "public" }
+      - {port: "111", proto: "udp", state: "enabled", zone: "public" }
+  - name: Creates directory
+    file:
+      path: /nfs/glance
+      state: directory
+      owner: root
+      group: root
+      mode: 0777
+      recurse: yes
+  - name: Creates directory
+    file:
+      path: /nfs/cinder
+      state: directory
+      owner: root
+      group: root
+      mode: 0777
+      recurse: yes
+
+  - name: copy /etc/exports
+    copy:
+      src: "/root/nfs/exports"
+      dest: "/etc/exports"
+
+  - name: exportfs -rav
+    shell: exportfs -rav
